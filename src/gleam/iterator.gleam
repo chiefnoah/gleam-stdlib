@@ -1619,3 +1619,33 @@ pub fn each(over iterator: Iterator(a), with f: fn(a) -> b) -> Nil {
 pub fn yield(element: a, next: fn() -> Iterator(a)) -> Iterator(a) {
   Iterator(fn() { Continue(element, fn() { next().continuation() }) })
 }
+
+fn do_try_map(
+  continuation: fn() -> Action(a),
+  f: fn(a) -> Result(b, c),
+) -> fn() -> Result(Action(b), c) {
+  case continuation() {
+    Stop -> Ok(Stop)
+    Continue(e, continuation) ->
+      case f(e) {
+        Ok(b) -> Ok(Continue(b, do_try_map(continuation, f)))
+        Error(e) -> Error(e)
+      }
+  }
+}
+
+fn do_try_map(
+  continuation: fn() -> Action(a), f: fn(a) -> b
+)
+
+pub fn try_map(
+  over iterator: Iterator(a),
+  with f: fn(a) -> Result(b, c),
+) -> Result(Iterator(b), #(Iterator(a), c)) {
+  case iterator.continuation() {
+    Stop -> Ok(empty())
+    Continue(e, continuation) -> case f(e) {
+      Ok(eb) -> Iterator(fn() {Continue(try_map(eb)})
+    }
+  }
+}
